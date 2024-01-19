@@ -30,13 +30,14 @@ jobs:
 
     - name: Update YAML file
       run: |
+        ls
         echo "Updating YAML file in deploy directory..."
-        sed -i "s|image: testing86.azurecr.io/services/bff-ws:.*|image: testing86.azurecr.io/services/bff-ws:${{ github.sha }}|" backend/deploy/bff-ws.yaml
+        sed -i "s|image: testing86.azurecr.io/services/bff-ws:.*|image: testing86.azurecr.io/services/bff-ws:${{ github.sha }}|" deploy/bff-ws.yaml
 
     - name: Commit and push changes
       run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
-        git add backend/deploy/bff-ws.yaml
+        git add deploy/bff-ws.yaml
         git commit -m "Update bff-ws deployment image tag to ${{github.sha}}"
         git push origin dev
