@@ -6,10 +6,15 @@ on:
       - dev
     paths:
       - 'backend/bff-ws/**'
+permissions:
+  contents: write
+  pull-requests: write
+    
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
     - uses: actions/checkout@master
 
@@ -39,5 +44,11 @@ jobs:
         git config --global user.name "GitHub Actions"
         git add deploy/bff-ws.yaml
         git commit -m "Update bff-ws deployment image tag to ${{github.sha}}"
-        git remote set-url origin "https://${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}.git"
         git push
+
+
+    # - name: Push changes
+    #   uses: ad-m/github-push-action@master
+    #   with:
+    #     github_token: ${{ secrets.PAT_TOKEN }}
+    #     branch: ${{ github.ref }}
