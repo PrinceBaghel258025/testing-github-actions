@@ -2,14 +2,14 @@ name: Build and update container image for bff-ws
 
 on:
    push:
-    branches:
-      - dev
+    branches: [dev, websockets]
     paths:
       - 'backend/bff-ws/**'
+      
 permissions:
   contents: write
   pull-requests: write
-    
+
 
 jobs:
   build:
@@ -26,29 +26,23 @@ jobs:
         login-server: 'testing86.azurecr.io' # default: index.docker.io
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-    
-    - run: |
-        echo ${PWD}
-        ls
+
+
+    - name: Build and push docker image
+      run: |
         docker build backend/bff-ws -t testing86.azurecr.io/services/bff-ws:${{ github.sha }} 
         docker push testing86.azurecr.io/services/bff-ws:${{ github.sha }}
 
     - name: Update YAML file
       run: |
-        ls
         echo "Updating YAML file in deploy directory..."
         sed -i "s|image: testing86.azurecr.io/services/bff-ws:.*|image: testing86.azurecr.io/services/bff-ws:${{ github.sha }}|" deploy/bff-ws.yaml
         cat deploy/bff-ws.yaml
-        echo "Making a commit"
+
+    - name: Push changes to current branch
+      run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
         git add deploy/bff-ws.yaml
         git commit -m "Update bff-ws deployment image tag to ${{github.sha}}"
         git push
-
-
-    # - name: Push changes
-    #   uses: ad-m/github-push-action@master
-    #   with:
-    #     github_token: ${{ secrets.PAT_TOKEN }}
-    #     branch: ${{ github.ref }}
