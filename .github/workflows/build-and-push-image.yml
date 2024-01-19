@@ -24,6 +24,6 @@ jobs:
     
     - run: |
         echo ${PWD}
-        echoe ls
+        ls
         docker build -t testing86.azurecr.io/services/bff-ws:${{ github.sha }}  .
         docker push testing86.azurecr.io/services/bff-ws:${{ github.sha }}
