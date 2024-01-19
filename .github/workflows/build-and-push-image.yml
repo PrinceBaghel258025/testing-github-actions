@@ -16,8 +16,7 @@ jobs:
     - name: Navigate to bff-ws Directory
       run: cd backend/bff-ws
 
-    - name: docker login
-      uses: azure/docker-login@v1
+    - uses: azure/docker-login@v1
       with:
         login-server: 'testing86.azurecr.io' # default: index.docker.io
         username: ${{ secrets.REGISTRY_USERNAME }}
@@ -25,5 +24,6 @@ jobs:
     
     - run: |
         echo ${PWD}
-        docker build . -t testing86.azurecr.io/services/bff-ws:${{ github.sha }}
+        echoe ls
+        docker build -t testing86.azurecr.io/services/bff-ws:${{ github.sha }}  .
         docker push testing86.azurecr.io/services/bff-ws:${{ github.sha }}
