@@ -1,0 +1,28 @@
+name: Build and update container image for bff-ws
+
+on:
+   push:
+    branches:
+      - dev
+    paths:
+      - 'backend/bff-ws/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Navigate to bff-ws Directory
+      run: cd backend/bff-ws
+
+    - name: docker login
+      uses: azure/k8s-actions/docker-login@master
+      with:
+        login-server: testing86.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+    
+    - run: |
+        docker build . -t testing86.azurecr.io/services/bff-ws:${{ github.sha }}
+        docker push testing86.azurecr.io/services/bff-ws:${{ github.sha }}
