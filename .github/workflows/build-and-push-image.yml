@@ -17,9 +17,9 @@ jobs:
       run: cd backend/bff-ws
 
     - name: docker login
-      uses: azure/k8s-actions/docker-login@master
+      uses: azure/docker-login@v1
       with:
-        login-server: testing86.azurecr.io
+        login-server: 'testing86.azurecr.io' # default: index.docker.io
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     
