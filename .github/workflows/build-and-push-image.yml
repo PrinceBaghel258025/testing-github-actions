@@ -33,6 +33,7 @@ jobs:
         ls
         echo "Updating YAML file in deploy directory..."
         sed -i "s|image: testing86.azurecr.io/services/bff-ws:.*|image: testing86.azurecr.io/services/bff-ws:${{ github.sha }}|" deploy/bff-ws.yaml
+        cat deploy/bff-ws.yaml
         echo "Making a commit"
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
