@@ -38,16 +38,33 @@ jobs:
   #       else
   #         echo "::set-output name=matrix::{\"include\":[]}"
   #       fi
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Set matrix for changed directories
+        id: set-matrix
+        run: |
+          CHANGED_DIRS=()
+          
+            if ! git diff --quiet HEAD^ HEAD -- $dir; then
+              CHANGED_DIRS+=("$dir")
+            fi
+          done
+          echo "::set-output name=matrix::$(echo ${CHANGED_DIRS[@]} | jq -R -c 'split(" ")')"
 
 
   build:
-    # needs: check_changes
+    needs: check_changes
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        dir:
-          - 'backend/bff-ws'
-          - 'backend/bff-ws2' 
+        dir: ${{fromJson(needs.check_changes.outputs.matrix)}}
+    if: ${{ fromJson(needs.check_changes.outputs.matrix) }}
     
     steps:
     - uses: actions/checkout@master
