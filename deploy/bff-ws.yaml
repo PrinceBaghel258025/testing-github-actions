@@ -40,7 +40,7 @@ spec:
         - name: acr-secret
       containers:
       - name: bff-ws
-        image: testing86.azurecr.io/services/bff-ws:8e6272066ca990311d28dc066b977ae79e811d2c
+        image: testing86.azurecr.io/services/bff-ws:a8943aa2600400ed6ccee90b81384d9f6a4a63e1
         env:
         - name: APP_PORT
           value: "9000"
