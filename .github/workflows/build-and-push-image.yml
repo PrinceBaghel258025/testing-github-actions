@@ -12,7 +12,16 @@ permissions:
 
 
 jobs:
+
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix:
+        include: ${{ needs.build.outputs.matrix }}
+
+
   build:
+    needs: check_changes
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -32,9 +41,14 @@ jobs:
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
+    - name: Extract last part of the directory path
+      id: extract_last_part
+      run: echo "::set-output name=last_part::$(basename $PWD)"
 
     - name: Build and push docker image
       run: |
+        last_part=${{ steps.extract_last_part.outputs.last_part }}
+        cat last_part
         docker build backend/bff-ws -t testing86.azurecr.io/services/bff-ws:${{ github.sha }} 
         docker push testing86.azurecr.io/services/bff-ws:${{ github.sha }}
 
