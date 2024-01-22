@@ -4,7 +4,7 @@ on:
    push:
     branches: [dev, websockets]
     paths:
-      - 'backend/bff-ws/**'
+      - 'backend/**'
       
 permissions:
   contents: write
@@ -14,12 +14,17 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dir:
+          - 'backend/bff-ws'
+          - 'backend/bff-ws2' 
     
     steps:
     - uses: actions/checkout@master
 
-    - name: Navigate to bff-ws Directory
-      run: cd backend/bff-ws/
+    - name: Navigate to specific Directory
+      run: cd ${{ matrix.dir }}
 
     - uses: azure/docker-login@v1
       with:
@@ -36,13 +41,27 @@ jobs:
     - name: Update YAML file
       run: |
         echo "Updating YAML file in deploy directory..."
-        sed -i "s|image: testing86.azurecr.io/services/bff-ws:.*|image: testing86.azurecr.io/services/bff-ws:${{ github.sha }}|" deploy/bff-ws.yaml
-        cat deploy/bff-ws.yaml
+        sed -i "s|image: testing86.azurecr.io/services/${{ matrix.dir }}:.*|image: testing86.azurecr.io/services/${{ matrix.dir }}:${{ github.sha }}|" deploy/${{ matrix.dir }}
 
-    - name: Push changes to current branch
+    # - name: Push changes to current branch
+    #   run: |
+    #     git config --global user.email "actions@github.com"
+    #     git config --global user.name "GitHub Actions"
+    #     git add deploy/bff-ws.yaml
+    #     git commit -m "Update bff-ws deployment image tag to ${{github.sha}}"
+    #     git push
+
+  commit_and_push:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Commit and push changes
       run: |
         git config --global user.email "actions@github.com"
         git config --global user.name "GitHub Actions"
-        git add deploy/bff-ws.yaml
-        git commit -m "Update bff-ws deployment image tag to ${{github.sha}}"
+        git add backend
+        git commit -m "Updated deployment image tags"
         git push
