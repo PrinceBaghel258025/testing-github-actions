@@ -16,7 +16,7 @@ jobs:
   check_changes:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{fromJson(needs.check_changes.outputs.matrix)}}
+      matrix: ${{ steps.check_changes.outputs.matrix}}
     strategy:
       matrix:
         dir:
