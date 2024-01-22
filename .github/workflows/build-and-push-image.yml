@@ -16,8 +16,24 @@ jobs:
   check_changes:
     runs-on: ubuntu-latest
     outputs:
+      matrix: ${{fromJson(needs.check_changes.outputs.matrix)}}
+    strategy:
       matrix:
-        include: ${{ needs.build.outputs.matrix }}
+        dir:
+          - 'backend/bff-ws'
+          - 'backend/bff-ws2'
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+    - name: Check changes in directory
+      id: check_changes
+      run: |
+        if [[ -n $(git diff --name-only ${{ matrix.dir }}) ]]; then
+          echo "::set-output name=changes::true"
+        else
+          echo "::set-output name=changes::false"
+        fi
 
 
   build:
