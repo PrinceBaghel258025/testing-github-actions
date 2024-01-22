@@ -13,31 +13,35 @@ permissions:
 
 jobs:
 
-  check_changes:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.check_changes.outputs.matrix}}
-    strategy:
-      matrix:
-        dir:
-          - 'backend/bff-ws'
-          - 'backend/bff-ws2'
+  # check_changes:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: ${{ steps.set-matrix.outputs.matrix }}
+  #   steps:
+  #   - name: Checkout Repository
+  #     uses: actions/checkout@v2
 
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
-    - name: Check changes in directory
-      id: check_changes
-      run: |
-        if [[ -n $(git diff --name-only ${{ matrix.dir }}) ]]; then
-          echo "::set-output name=changes::true"
-        else
-          echo "::set-output name=changes::false"
-        fi
+  #   - name: Set Matrix for Changed Directories
+  #     id: set-matrix
+  #     run: |
+  #       matrix="{\"include\":["
+  #       changed=false
+  #       for dir in backend/bff-ws backend/bff-ws2; do
+  #         if git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- $dir; then
+  #           matrix="$matrix{\"dir\":\"$dir\"},"
+  #           changed=true
+  #         fi
+  #       done
+  #       matrix="${matrix%?}]}"
+  #       if [ "$changed" = true ]; then
+  #         echo "::set-output name=matrix::$matrix"
+  #       else
+  #         echo "::set-output name=matrix::{\"include\":[]}"
+  #       fi
 
 
   build:
-    needs: check_changes
+    # needs: check_changes
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -63,25 +67,17 @@ jobs:
 
     - name: Build and push docker image
       run: |
-        last_part=basename $PWD
+        last_part=$(basename ${{ matrix.dir }})
         echo $last_part
         docker build ${{ matrix.dir}} -t testing86.azurecr.io/services/$last_part:${{ github.sha }} 
         docker push testing86.azurecr.io/services/$last_part:${{ github.sha }}
 
     - name: Update YAML file
       run: |
-        last_part=basename $PWD
+        last_part=$(basename ${{ matrix.dir }})
         echo $last_part
         echo "Updating YAML file in deploy directory..."
         sed -i "s|image: testing86.azurecr.io/services/$last_part:.*|image: testing86.azurecr.io/services/$last_part:${{ github.sha }}|" deploy/$last_part
-
-    # - name: Push changes to current branch
-    #   run: |
-    #     git config --global user.email "actions@github.com"
-    #     git config --global user.name "GitHub Actions"
-    #     git add deploy/bff-ws.yaml
-    #     git commit -m "Update bff-ws deployment image tag to ${{github.sha}}"
-    #     git push
 
   commit_and_push:
     needs: build
