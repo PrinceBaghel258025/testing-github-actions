@@ -77,7 +77,7 @@ jobs:
         last_part=$(basename ${{ matrix.dir }})
         echo $last_part
         echo "Updating YAML file in deploy directory..."
-        sed -i "s|image: testing86.azurecr.io/services/$last_part:.*|image: testing86.azurecr.io/services/$last_part:${{ github.sha }}|" deploy/$last_part
+        sed -i "s|image: testing86.azurecr.io/services/$last_part:.*|image: testing86.azurecr.io/services/$last_part:${{ github.sha }}|" deploy/$last_part.yaml
 
   commit_and_push:
     needs: build
