@@ -64,14 +64,16 @@ jobs:
     - name: Build and push docker image
       run: |
         last_part=${{ steps.extract_last_part.outputs.last_part }}
-        echo last_part
-        docker build backend/bff-ws -t testing86.azurecr.io/services/bff-ws:${{ github.sha }} 
-        docker push testing86.azurecr.io/services/bff-ws:${{ github.sha }}
+        echo $last_part
+        docker build ${{ matrix.dir}} -t testing86.azurecr.io/services/$last_part:${{ github.sha }} 
+        docker push testing86.azurecr.io/services/$last_part:${{ github.sha }}
 
     - name: Update YAML file
       run: |
+        last_part=${{ steps.extract_last_part.outputs.last_part }}
+        echo $last_part
         echo "Updating YAML file in deploy directory..."
-        sed -i "s|image: testing86.azurecr.io/services/${{ matrix.dir }}:.*|image: testing86.azurecr.io/services/${{ matrix.dir }}:${{ github.sha }}|" deploy/${{ matrix.dir }}
+        sed -i "s|image: testing86.azurecr.io/services/$last_part:.*|image: testing86.azurecr.io/services/$last_part:${{ github.sha }}|" deploy/$last_part
 
     # - name: Push changes to current branch
     #   run: |
