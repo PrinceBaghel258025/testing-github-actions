@@ -1,0 +1,30 @@
+name: track changes
+
+on:
+  push:
+    branches: dev
+    paths:
+      - 'backend/**'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Set matrix for changed directories
+        id: set-matrix
+        run: |
+          CHANGED_DIRS=()
+          for dir in backend/bff-ws backend/bff-ws2; do
+            if [[ -n $(git diff --name-only ${{ github.sha }}^ ${{ github.sha }} -- $dir) ]]; then
+              CHANGED_DIRS+=($dir)
+            fi
+          done
+          echo "::set-output name=matrix::$(echo ${CHANGED_DIRS[*]} | jq -R 'split(" ")')"
