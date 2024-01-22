@@ -81,8 +81,8 @@ jobs:
     - name: Upload updated YAML file as artifact
       uses: actions/upload-artifact@v2
       with:
-        name: updated-yaml-
-        path: deploy/$last_part.yaml
+        name: updated-yaml
+        path: deploy/
 
   commit_and_push:
     needs: build
