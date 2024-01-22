@@ -1,0 +1,49 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: node-subscriber2
+  labels:
+    app: node
+spec:
+  selector:
+    app: node
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 9000
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bff-ws2
+  labels:
+    app: node
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node
+  template:
+    metadata:
+      labels:
+        app: node
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "node-subscriber2"
+        dapr.io/app-port: "9000"
+        dapr.io/log-level: "debug"
+        dapr.io/enable-api-logging: "true"
+    spec:
+      imagePullSecrets:
+        - name: acr-secret
+      containers:
+      - name: bff-ws2
+        image: testing86.azurecr.io/services/bff-ws:8e6272066ca990311d28dc066b977ae79e811d2c
+        env:
+        - name: APP_PORT
+          value: "9000"
+        ports:
+        - containerPort: 9000
+        imagePullPolicy: Always
