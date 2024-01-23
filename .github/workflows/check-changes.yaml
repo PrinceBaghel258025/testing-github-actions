@@ -3,28 +3,85 @@ name: track changes
 on:
   push:
     branches: dev
-    paths:
-      - 'backend/**'
+    # paths:
+    #   - 'backend/**'
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  check_changes:
+  changes:
     runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      # Expose matched filters as job 'packages' output variable
+      packages: ${{ steps.filter.outputs.changes }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Set matrix for changed directories
-        id: set-matrix
-        run: |
-          CHANGED_DIRS=()
-          for dir in backend/bff-ws backend/bff-ws2; do
-            if [[ -n $(git diff --name-only ${{ github.sha }}^ ${{ github.sha }} -- $dir) ]]; then
-              CHANGED_DIRS+=($dir)
-            fi
-          done
-          echo "::set-output name=matrix::$(echo ${CHANGED_DIRS[*]} | jq -R 'split(" ")')"
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          package1: backend/bff-ws
+          package2: backend/bff-ws2
+  
+  build:
+    needs: changes
+    strategy:
+      matrix:
+        # Parse JSON array containing names of all filters matching any of changed files
+        # e.g. ['package1', 'package2'] if both package folders contains changes
+        dir: ${{ fromJSON(needs.changes.outputs.packages) }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: just tracking changes
+      run: echo "hello"
+
+    - name: all changed dirs
+      run: echo ${{ matrix.dir }}
+
+      
+
+
+  # check_changes:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: ${{ steps.set-matrix.outputs.matrix }}
+  #   steps:
+  #     - name: Checkout Repository
+  #       uses: actions/checkout@v2
+  #     - name: Set matrix for changed directories
+  #       id: set-matrix
+  #       run: |
+  #         CHANGED_DIRS=()
+  #         for dir in backend/bff-ws backend/bff-ws2; do
+  #           if [[ -n $(git diff --name-only ${{ github.sha }}^ ${{ github.sha }} -- $dir) ]]; then
+  #             CHANGED_DIRS+=($dir)
+  #           fi
+  #         done
+  #         echo $CHANGED_DIRS
+  #         echo "::set-output name=matrix::$(echo ${CHANGED_DIRS[*]} | jq -R 'split(" ")')"
+
+  # changed_files:
+  #   runs-on: ubuntu-latest  # windows-latest || macos-latest
+  #   name: Test changed-files
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
+
+  #     - name: Get changed files
+  #       id: changed-files
+  #       uses: tj-actions/changed-files@v42
+  #     # NOTE: `since_last_remote_commit: true` is implied by default and falls back to the previous local commit.
+
+  #     - name: List all changed files
+  #       env:
+  #         ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+  #       run: |
+  #         for file in "$ALL_CHANGED_FILES"; do
+  #           echo "$file was changed"
+  #         done
